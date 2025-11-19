@@ -1,0 +1,27 @@
+# master-app/src/main/resources/k8s-templates/service-template.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  # The service name must be unique and use the TENANT_ID placeholder
+  name: service-${TENANT_ID}
+  labels:
+    app: cloudvault
+    tenant: ${TENANT_ID}
+spec:
+  # This selector links the Service to the Deployment created for the same tenant.
+  # It targets all Pods with the label 'tenant: <tenantId>'.
+  selector:
+    tenant: ${TENANT_ID}
+
+  # ClusterIP exposes the Service on a cluster-internal IP.
+  # This is the standard type when using an Ingress Controller (recommended).
+  type: ClusterIP
+
+  ports:
+    - protocol: TCP
+      # The port the service exposes internally
+      port: 80
+      # The targetPort must match the containerPort defined in the Deployment (e.g., 8080 for Spring Boot)
+      targetPort: 8080
+      name: http-tenant-${TENANT_ID}

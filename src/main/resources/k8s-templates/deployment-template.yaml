@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudvault-${TENANT_ID}
+  labels:
+    app: cloudvault
+    tenant: ${TENANT_ID}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tenant: ${TENANT_ID}
+  template:
+    metadata:
+      labels:
+        app: cloudvault
+        tenant: ${TENANT_ID}
+    spec:
+      containers:
+        - name: tenant-app
+          image: cloudvault/tenant-service:poc # Replaced by cloudvault/tenant-service:poc
+          ports:
+            - containerPort: 8082
+          env:
+            # Business logic environment variable
+            - name: TENANT_ID
+              value: "${TENANT_ID}"
+            # Database connection environment variables for Spring Boot
+            - name: DB_URL
+              value: "${DB_URL}"
+            - name: DB_USERNAME
+              value: "${DB_USERNAME}"
+            - name: DB_PASSWORD
+              value: "${DB_PASSWORD}" # WARNING: Use K8s Secrets in production!

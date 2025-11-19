@@ -1,3 +1,29 @@
 spring:
   application:
     name: MasterCloudVault
+
+  datasource:
+    # 1. Fix: Explicitly state the driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/master_vault_db?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
+
+  jpa:
+    # 2. Fix: Explicitly state the Dialect so Hibernate doesn't have to guess
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  flyway:
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
+# Custom Provisioning Config (Keep this as is, it looks fine)
+mysql:
+  provisioning:
+    url: jdbc:mysql://localhost:3306/
+    username: root
+    password: root
