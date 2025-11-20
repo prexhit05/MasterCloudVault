@@ -57,6 +57,8 @@ public class K8sDeploymentService {
 
         // Apply the generated YAMLs to the Kubernetes cluster
         log.info("Applying Kubernetes Deployment and Service for tenantId={}", tenantId);
+
+
         try (InputStream deploymentStream = new ByteArrayInputStream(deploymentYaml.getBytes(StandardCharsets.UTF_8));
              InputStream serviceStream = new ByteArrayInputStream(serviceYaml.getBytes(StandardCharsets.UTF_8))) {
 

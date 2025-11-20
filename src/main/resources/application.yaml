@@ -24,6 +24,7 @@ spring:
 # Custom Provisioning Config (Keep this as is, it looks fine)
 mysql:
   provisioning:
+    host : host.docker.internal
     url: jdbc:mysql://localhost:3306/
     username: root
     password: root
