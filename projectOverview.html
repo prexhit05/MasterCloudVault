@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MasterCloudVault - POC Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Harmony (bg-gray-50, bg-white, text-gray-800, text-indigo-600) -->
+    <!-- Application Structure Plan: Designed a 6-section tabbed SPA (Overview, Architecture, Setup & Run, API Reference, Observe & Debug, POC Limitations). This structure was chosen over a linear report mirror because the target audience (developers) is task-oriented. Tabs allow non-linear exploration, letting a user jump directly to 'API Reference' or 'Setup & Run' without scrolling. This improves usability for technical documentation, allowing quick access to reference material. -->
+    <!-- Visualization & Content Choices: Report is purely technical documentation with no quantitative data, so no charts (Chart.js/Plotly.js) are used. Key process (API call flow) is visualized using a responsive HTML/Tailwind flexbox diagram, not SVG/Mermaid, to adhere to constraints (Goal: Organize, Method: HTML Diagram, Interaction: None). Code/config is presented in styled <pre><code> blocks (Goal: Inform, Method: HTML, Interaction: Toggle Accordion). Prerequisites/Limitations use styled lists with Unicode icons for scannability (Goal: Inform, Method: HTML List). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        pre code {
+            display: block;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #1f2937; 
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'monospace';
+            font-size: 0.875rem;
+        }
+        .prose-lg h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .prose-lg h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #374151;
+        }
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            white-space: nowrap;
+        }
+        .nav-btn.active {
+            background-color: #4f46e5; 
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .nav-btn.inactive {
+            color: #4b5563;
+            background-color: transparent;
+        }
+        .nav-btn.inactive:hover {
+            background-color: #f3f4f6; 
+            color: #1f2937;
+        }
+        .flow-step {
+            min-height: 120px;
+        }
+        .accordion-header {
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        .accordion-header:hover {
+            background-color: #f3f4f6;
+        }
+        .accordion-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        }
+        .accordion-content.hidden-content {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <div class="min-h-screen flex flex-col">
+        
+        <header class="bg-white shadow-md border-b border-gray-200 sticky top-0 z-10">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                    <h1 class="text-3xl font-extrabold text-indigo-600 mb-4 md:mb-0">
+                        🚀 MasterCloudVault <span class="text-xl font-normal text-gray-500">POC Explorer</span>
+                    </h1>
+                    
+                    <nav class="flex flex-wrap justify-center gap-2" id="main-nav">
+                        <button class="nav-btn active" data-target="overview">Overview</button>
+                        <button class="nav-btn inactive" data-target="architecture">Architecture</button>
+                        <button class="nav-btn inactive" data-target="setup">Setup & Run</button>
+                        <button class="nav-btn inactive" data-target="api">API Reference</button>
+                        <button class="nav-btn inactive" data-target="observe">Observe & Debug</button>
+                        <button class="nav-btn inactive" data-target="limitations">Limitations</button>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+            
+            <div id="app-content" class="prose-lg max-w-none">
+
+                <!-- 1. OVERVIEW SECTION -->
+                <section id="overview-content" class="app-section">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        This section provides a summary of the MasterCloudVault project. It details the core concept of the POC—enabling the multi-tenant SaaS model—and highlights the three main automated provisioning steps.
+                    </p>
+                    
+                    <div class="rounded-xl p-6 bg-white shadow-xl border border-indigo-100 mt-6">
+                        <h2 class="text-2xl text-indigo-700 mb-4 mt-0 font-semibold">Core Provisioning Goals</h2>
+                        <ul class="list-none space-y-4 text-lg p-0">
+                            <li class="flex items-start"><span class="text-2xl mr-4 text-green-500">🔐</span> <strong class="text-gray-900">Isolated Database:</strong> Creates a dedicated MySQL database (`db_<tenantId>`) and user for total data segregation.</li>
+                            <li class="flex items-start"><span class="text-2xl mr-4 text-blue-500">💾</span> <strong class="text-gray-900">Metadata Persistence:</strong> Stores essential tenant configuration (DB credentials) in the Master DB (`MasterEntity`).</li>
+                            <li class="flex items-start"><span class="text-2xl mr-4 text-purple-500">☁️</span> <strong class="text-gray-900">Dedicated Service:</strong> Deploys isolated Kubernetes resources (Deployment + Service) for the tenant's application.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 2. ARCHITECTURE SECTION -->
+                <section id="architecture-content" class="app-section hidden">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        The Architecture section breaks down the components and the flow of the `POST / {tenantId}` call. Understanding this structure is key to running and troubleshooting the POC.
+                    </p>
+
+                    <h2 class="text-indigo-600">Key Architectural Components</h2>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-lg mt-4">
+                        <table class="min-w-full divide-y divide-gray-200 text-left">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Component</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Technology</th>
+                                    <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium">Master App</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Spring Boot 3 / Java 17, JPA</td>
+                                    <td class="px-6 py-4">Exposes the registration API and stores tenant metadata.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium">Tenant DB Provisioning</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">`JdbcTemplate` (MySQL)</td>
+                                    <td class="px-6 py-4">Creates tenant database, user, and grants privileges using privileged connection.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium">Kubernetes Deployment</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">Fabric8 Kubernetes Client</td>
+                                    <td class="px-6 py-4">Renders YAML templates and applies K8s resources.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h2 class="text-indigo-600">K8s Template Placeholders</h2>
+                    <p class="text-gray-700">The Fabric8 client substitutes the following variables into the `deployment-template.yaml` and `service-template.yaml` before deployment:</p>
+                    <ul class="list-disc list-inside space-y-1 pl-4 mt-2">
+                        <li><code>${TENANT_ID}</code>: The unique identifier.</li>
+                        <li><code>${DB_URL}</code>, <code>${DB_USERNAME}</code>, <code>${DB_PASSWORD}</code>: Database credentials for the new tenant.</li>
+                        <li><code>${TENANT_APP_IMAGE}</code>: The Docker image to deploy.</li>
+                    </ul>
+                </section>
+
+                <!-- 3. SETUP & RUN SECTION -->
+                <section id="setup-content" class="app-section hidden">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        This tab contains all necessary information for setting up your environment and running the MasterCloudVault application, including prerequisite checks and configuration details.
+                    </p>
+                    
+                    <h2 class="text-indigo-600">Prerequisites Check</h2>
+                    <p class="text-gray-700">Ensure all these items are available and configured in your environment:</p>
+                    <div class="grid md:grid-cols-2 gap-4 mt-4">
+                        <div class="bg-white p-4 rounded-lg shadow border border-gray-100">
+                            <h3 class="flex items-center text-lg font-semibold mt-0 mb-2 text-gray-900"><span class="mr-2 text-green-500">✅</span> Software</h3>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Java 17+</li>
+                                <li>Maven (or `mvnw`)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow border border-gray-100">
+                            <h3 class="flex items-center text-lg font-semibold mt-0 mb-2 text-gray-900"><span class="mr-2 text-yellow-500">🛠️</span> Services</h3>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>MySQL instance reachable by the master app (with root/admin privileges for provisioning).</li>
+                                <li>Kubernetes cluster reachable (`kubectl` context configured).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h2 class="text-indigo-600">Application Configuration</h2>
+                    <p class="text-gray-700">The following configuration is found in <code>src/main/resources/application.yaml</code>. The master and provisioning credentials must be set correctly.</p>
+
+                    <div id="config-accordion" class="mt-4 space-y-2">
+                        <div class="rounded-lg shadow border border-gray-200 bg-white">
+                            <div class="accordion-header flex justify-between items-center text-gray-900 font-medium" data-toggle="config-content">
+                                <span>View `application.yaml` Snippet</span>
+                                <span class="text-indigo-600 toggle-icon">▼</span>
+                            </div>
+                            <div id="config-content" class="accordion-content hidden-content px-4 pb-4">
+                                <pre><code>spring:
+  application:
+    name: MasterCloudVault
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/master_vault_db?...
+    username: root
+    password: root # Master DB credentials
+
+mysql:
+  provisioning:
+    url: jdbc:mysql://localhost:3306/ 
+    username: root
+    password: root 
+    host: localhost 
+tenant:
+  app:
+    image: cloudvault/tenant-service:poc 
+</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-indigo-600">Running the App</h2>
+                    <p class="text-gray-700">Execute the following command from the project root. The application will start on <code class="text-indigo-600">http://localhost:8080</code>.</p>
+                    <pre><code># Unix / macOS
+./mvnw spring-boot:run
+
+# Windows
+mvnw.cmd spring-boot:run
+</code></pre>
+                </section>
+                
+                <!-- 4. API REFERENCE SECTION -->
+                <section id="api-content" class="app-section hidden">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        The API Reference details the single external endpoint used to trigger the entire SaaS tenant provisioning process and provides a clear, step-by-step breakdown of the internal logic flow.
+                    </p>
+
+                    <h2 class="text-indigo-600">Registration Endpoint</h2>
+                    <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                        <code class="text-green-600 font-bold bg-green-50 px-2 py-1 rounded">POST</code> <code class="text-gray-900 font-mono text-lg">http://localhost:8080/<span class="text-indigo-600">{tenantId}</span></code>
+                        <p class="text-sm text-gray-500 mt-2">
+                            <strong>Path Variable:</strong> <code>tenantId</code> – unique identifier for the tenant (e.g., acme, tenant123).
+                        </p>
+                    </div>
+
+                    <h3 class="mt-6 text-indigo-600">Example Registration</h3>
+                    <pre><code>curl -X POST http://localhost:8080/acme
+</code></pre>
+                    <p class="text-gray-700 mt-2"><strong>Expected Response:</strong> <code>Tenant acme provisioned successfully. App starting on K8s.</code></p>
+
+                    <h2 class="text-indigo-600">Provisioning Flow Diagram</h2>
+                    <p class="text-gray-700">A simplified visualization of the internal process triggered by the API call:</p>
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <!-- Step 1 -->
+                        <div class="flow-step bg-white p-4 rounded-lg shadow-xl flex flex-col justify-center border-t-4 border-indigo-500">
+                            <p class="text-2xl mb-2">1. 📞 API Call</p>
+                            <p class="text-sm text-gray-600"><code>POST /acme</code> received by <code>RegistrationController</code>. Generates DB user/password (UUID).</p>
+                        </div>
+                        
+                        <!-- Arrow 1 -->
+                        <div class="md:flex hidden items-center justify-center">
+                            <span class="text-4xl text-indigo-400">→</span>
+                        </div>
+                        <div class="md:hidden flex items-center justify-center py-2">
+                            <span class="text-4xl text-indigo-400">↓</span>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flow-step bg-white p-4 rounded-lg shadow-xl flex flex-col justify-center border-t-4 border-green-500 md:col-span-1 md:row-start-2">
+                            <p class="text-2xl mb-2">2. 💾 DB Provisioning</p>
+                            <p class="text-sm text-gray-600"><code>TenantDbProvisioningService</code> uses root connection to run SQL: <code>CREATE DATABASE</code>, <code>CREATE USER</code>, <code>GRANT</code>. Metadata persisted to Master DB.</p>
+                        </div>
+                        
+                        <!-- Arrow 2 (Reverse direction for cleaner layout) -->
+                        <div class="md:flex hidden items-center justify-center md:row-start-2">
+                            <span class="text-4xl text-indigo-400">←</span>
+                        </div>
+                        <div class="md:hidden flex items-center justify-center py-2">
+                            <span class="text-4xl text-indigo-400">↓</span>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flow-step bg-white p-4 rounded-lg shadow-xl flex flex-col justify-center border-t-4 border-purple-500 md:col-span-1 md:row-start-2 md:col-start-3">
+                            <p class="text-2xl mb-2">3. ☁️ K8s Deployment</p>
+                            <p class="text-sm text-gray-600"><code>K8sDeploymentService</code> renders YAML templates (injecting DB details) and applies Deployment + Service via Fabric8 Client.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. OBSERVE & DEBUG SECTION -->
+                <section id="observe-content" class="app-section hidden">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        This guide provides essential commands for confirming that the tenant resources have been created successfully on the Kubernetes cluster and how to debug the application pods.
+                    </p>
+
+                    <h2 class="text-indigo-600">Verifying Deployment</h2>
+                    <p class="text-gray-700">Use `kubectl` to check the new pods and services. They will be named based on the tenant ID:</p>
+                    <pre><code>kubectl get pods
+kubectl get svc
+</code></pre>
+                    <p class="text-gray-700 mt-2"><strong>Look For:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 pl-4 text-gray-700">
+                        <li>Pod: <code>cloudvault-&lt;tenantId&gt;...</code></li>
+                        <li>Service: <code>service-&lt;tenantId&gt;</code></li>
+                    </ul>
+
+                    <h2 class="text-indigo-600">Debugging Tenant Pods</h2>
+                    <p class="text-gray-700">If a pod is failing, use the logs command, replacing the placeholder with the actual pod name:</p>
+                    <pre><code>kubectl logs &lt;pod-name-e.g.-cloudvault-acme-fgh456d&gt;
+</code></pre>
+                </section>
+
+                <!-- 6. POC LIMITATIONS SECTION -->
+                <section id="limitations-content" class="app-section hidden">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        As a Proof-of-Concept, MasterCloudVault contains specific, intentional simplifications. This section outlines key limitations that must be addressed for any production deployment.
+                    </p>
+
+                    <h2 class="text-indigo-600">Security & Reliability Gaps</h2>
+                    <div class="grid md:grid-cols-2 gap-6 mt-4">
+                        <div class="bg-white p-5 rounded-lg shadow-lg border-l-4 border-red-500">
+                            <h3 class="flex items-center text-xl font-semibold mt-0 mb-3 text-red-700">🔒 Security Concerns</h3>
+                            <ul class="list-none space-y-3 text-gray-700 p-0">
+                                <li class="flex items-start"><span class="text-xl mr-3 text-red-500">❌</span> MySQL credentials and tenant DB passwords are not stored securely (plain text/env vars).</li>
+                                <li class="flex items-start"><span class="text-xl mr-3 text-red-500">❌</span> **Production Goal:** Use Kubernetes Secrets instead of plain environment variables.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow-lg border-l-4 border-orange-500">
+                            <h3 class="flex items-center text-xl font-semibold mt-0 mb-3 text-orange-700">🔄 Reliability & Errors</h3>
+                            <ul class="list-none space-y-3 text-gray-700 p-0">
+                                <li class="flex items-start"><span class="text-xl mr-3 text-orange-500">⚠️</span> No compensating transactions or rollback logic if provisioning fails mid-way.</li>
+                                <li class="flex items-start"><span class="text-xl mr-3 text-orange-500">⚠️</span> K8s resources are applied directly without robust error handling or idempotency checks.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-indigo-600 mt-8">Project Structure Reference</h2>
+                    <pre><code>src/main/java/com/masterCloudVault/MasterCloudVault/
+ ├── MasterCloudVaultApplication.java
+ ├── controller/
+ │    └── RegistrationController.java       # The /{tenantId} endpoint
+ ├── entity/
+ │    └── MasterEntity.java                 # Tenant metadata JPA entity
+ ├── repo/
+ │    └── MasterEntityRepo.java             # JPA repository
+ └── service/
+      ├── TenantDbProvisioningService.java  # Creates tenant DB/user
+      └── K8sDeploymentService.java         # Renders & applies K8s YAML
+
+src/main/resources/
+ ├── application.yaml                       # Spring & custom config
+ └── k8s-templates/
+      ├── deployment-template.yaml
+      └── service-template.yaml
+</code></pre>
+                </section>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-gray-200 mt-8 py-4">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+                MasterCloudVault POC Explorer - Generated for demonstration purposes only.
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const nav = document.getElementById('main-nav');
+            const contentContainer = document.getElementById('app-content');
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+            function showSection(targetId) {
+                document.querySelectorAll('.app-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                const targetSection = document.getElementById(`${targetId}-content`);
+                if (targetSection) {
+                    targetSection.classList.remove('hidden');
+                }
+            }
+
+            function setActiveButton(targetId) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (btn.dataset.target === targetId) {
+                        btn.classList.add('active');
+                        btn.classList.remove('inactive');
+                    } else {
+                        btn.classList.remove('active');
+                        btn.classList.add('inactive');
+                    }
+                });
+            }
+
+            nav.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.target;
+                if (targetId) {
+                    showSection(targetId);
+                    setActiveButton(targetId);
+                }
+            });
+
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const targetId = header.dataset.toggle;
+                    const content = document.getElementById(targetId);
+                    const icon = header.querySelector('.toggle-icon');
+
+                    if (content.classList.contains('hidden-content')) {
+                        content.classList.remove('hidden-content');
+                        content.style.maxHeight = content.scrollHeight + "px"; 
+                        icon.textContent = '▲';
+                    } else {
+                        content.style.maxHeight = null; 
+                        content.classList.add('hidden-content');
+                        icon.textContent = '▼';
+                    }
+                });
+            });
+
+            showSection('overview');
+            setActiveButton('overview');
+        });
+    </script>
+</body>
+</html>
